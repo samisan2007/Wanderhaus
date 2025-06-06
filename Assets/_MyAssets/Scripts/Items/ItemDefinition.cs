@@ -1,31 +1,16 @@
+// Assets/_MyAssets/Scripts/Items/ItemDefinition.cs
 using UnityEngine;
 
 namespace TravelingHouse.Items
 {
-    public enum EffectType
-    {
-        MoveSpeedMult,   // %  boost   e.g. 0.25 = +25 %
-        TurnSpeedMult,   // %  boost
-        LinearAccelAdd,  // + m/s²
-        TurnAccelAdd,    // + °/s²
-        Repair,          // + HP
-        WeaponUpgrade    // generic, handled by your weapon system
-    }
-
-    [CreateAssetMenu(menuName = "Traveling House/Item Definition")]
+    [CreateAssetMenu(menuName = "Traveling House/Item")]
     public sealed class ItemDefinition : ScriptableObject
     {
-        [System.Serializable]
-        public struct Effect
-        {
-            public EffectType type;
-            public float      amount;
-        }
-
-        public string displayName;
+        public string  displayName;
         [TextArea] public string description;
-        public Effect[] effects;
-        public Sprite   icon;     // optional UI
-        public GameObject worldPrefab;  // optional for programmatic spawning
+        public Sprite  icon;
+
+        [Tooltip("All effects fired when this item is collected.")]
+        public ScriptableObject[] effects; // must implement IItemEffect
     }
 }

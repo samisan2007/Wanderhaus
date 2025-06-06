@@ -1,12 +1,8 @@
+// Assets/_MyAssets/Scripts/Items/Gatherable.cs
 using UnityEngine;
-using TravelingHouse.Items;
-using TravelingHouse.Core;
 
 namespace TravelingHouse.Items
 {
-    /// <summary>
-    /// Simple trigger pickup. Tag the house root "Player" (or change the tag check).
-    /// </summary>
     [RequireComponent(typeof(Collider))]
     public sealed class Gatherable : MonoBehaviour
     {
@@ -19,8 +15,13 @@ namespace TravelingHouse.Items
         {
             if (!other.CompareTag("Player")) return;
 
-            GameEvents.RaiseItemCollected(item);
-            Destroy(gameObject);               // vanish after pickup
+            foreach (ScriptableObject so in item.effects)
+            {
+                if (so is IItemEffect effect)
+                    effect.Apply(other.gameObject);
+            }
+
+            Destroy(gameObject);
         }
     }
 }

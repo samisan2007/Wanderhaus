@@ -1,66 +1,45 @@
+// Assets/_MyAssets/Scripts/House/HouseStats.cs
 using UnityEngine;
-using TravelingHouse.Items;
-using TravelingHouse.Core;
+using TravelingHouse.Interfaces;
 using TravelingHouse.Movement;
+using TravelingHouse.Weapons;
 
 namespace TravelingHouse.House
 {
     /// <summary>
-    /// Owns movement buffs, health, and forwards weapon upgrades.
+    /// Simple aggregator so other scripts can grab
+    /// health, movement, or weapon systems from one place.
     /// </summary>
-    public sealed class HouseStats : MonoBehaviour
+    [DisallowMultipleComponent]
+    public sealed class HouseStats : MonoBehaviour,
+        IHealth,              // forwarders
+        IWeaponLoadout        // forwarders
     {
-        [Header("Links")]
-        [SerializeField] MovementInput movement;   // auto-filled in Awake
-
-        [Header("Health")]
-        [SerializeField, Min(1)] int maxHealth = 100;
-        [SerializeField]           int currentHealth = 100;
+        [Header("Subsystems (auto-filled)")]
+        [SerializeField] HouseHealth     health;
+        [SerializeField] MovementInput   movement;
+        [SerializeField] WeaponSystem    weapons;   // Your own script that implements IWeaponLoadout
 
         void Awake()
         {
-            if (movement == null)
-                movement = GetComponent<MovementInput>();
+            health   ??= GetComponent<HouseHealth>();
+            movement ??= GetComponent<MovementInput>();
+            weapons  ??= GetComponent<WeaponSystem>();
         }
 
-        void OnEnable()  => GameEvents.ItemCollected += ApplyItem;
-        void OnDisable() => GameEvents.ItemCollected -= ApplyItem;
-
-        void ApplyItem(ItemDefinition item)
+        /* ---------- IHealth passthrough ---------- */
+        public int  CurrentHealth
         {
-            foreach (var eff in item.effects)
-            {
-                switch (eff.type)
-                {
-                    case EffectType.MoveSpeedMult:
-                        movement.MaxLinearSpeed *= 1f + eff.amount;
-                        break;
-
-                    case EffectType.TurnSpeedMult:
-                        movement.MaxTurnSpeed   *= 1f + eff.amount;
-                        break;
-
-                    case EffectType.LinearAccelAdd:
-                        movement.LinearAccel    += eff.amount;
-                        break;
-
-                    case EffectType.TurnAccelAdd:
-                        movement.TurnAccel      += eff.amount;
-                        break;
-
-                    case EffectType.Repair:
-                        currentHealth = Mathf.Clamp(currentHealth + Mathf.RoundToInt(eff.amount),
-                                                    0, maxHealth);
-                        break;
-
-                    case EffectType.WeaponUpgrade:
-                        // Fire-and-forget; your weapon system can listen too.
-                        SendMessage("ApplyWeaponUpgrade",
-                                    eff.amount,
-                                    SendMessageOptions.DontRequireReceiver);
-                        break;
-                }
-            }
+            get => health.CurrentHealth;
+            set => health.CurrentHealth = value;
         }
+        public int  MaxHealth   => health.MaxHealth;
+
+        /* ---------- IWeaponLoadout passthrough --- */
+        public void ApplyUpgrade(string key) => weapons.ApplyUpgrade(key);
+
+        /* ---------- Convenience accessors -------- */
+        public MovementInput Movement => movement;
+        public WeaponSystem  Weapons  => weapons;
     }
 }
