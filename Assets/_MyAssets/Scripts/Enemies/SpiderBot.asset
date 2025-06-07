@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SpiderBot
   m_EditorClassIdentifier: 
   maxHealth: 50
-  moveSpeed: 5
-  stoppingDistance: 4
+  moveSpeed: 1.41
+  stoppingDistance: 29.73
   damage: 10
   attackCooldown: 3
